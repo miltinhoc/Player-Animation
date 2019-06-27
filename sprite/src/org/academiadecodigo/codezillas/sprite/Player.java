@@ -13,81 +13,75 @@ public class Player implements KeyboardHandler {
     private Picture player;
     private Keyboard keyboard;
     private boolean right;
+
     private static final int HORIZONTAL_SPEED = 17;
+    private static final int VERTICAL_SPEED = 20;
+
     private int currentIndex;
     private int idleIndex;
+    private int jumpIndex;
     private boolean dead;
+    private boolean jump;
+    private boolean playerIdle = true;
 
-    public boolean playerIdle = true;
-
-    public static final String[] PLAYER_IDLE = {
-            "resources/idle/Idle (1).png",
-            "resources/idle/Idle (2).png",
-            "resources/idle/Idle (3).png",
-            "resources/idle/Idle (4).png",
-            "resources/idle/Idle (5).png",
-            "resources/idle/Idle (6).png",
-            "resources/idle/Idle (7).png",
-            "resources/idle/Idle (8).png",
-            "resources/idle/Idle (9).png",
-            "resources/idle/Idle (10).png"
-    };
-
-    public static final String[] PLAYER_RUN = {
-            "resources/Run (1).png",
-            "resources/Run (2).png",
-            "resources/Run (3).png",
-            "resources/Run (4).png",
-            "resources/Run (5).png",
-            "resources/Run (6).png",
-            "resources/Run (7).png",
-            "resources/Run (8).png"
-    };
-
-    public static final String[] PLAYER_DEAD = {
-            "resources/dead/Dead (1).png",
-            "resources/dead/Dead (2).png",
-            "resources/dead/Dead (3).png",
-            "resources/dead/Dead (4).png",
-            "resources/dead/Dead (5).png",
-            "resources/dead/Dead (6).png",
-            "resources/dead/Dead (7).png",
-            "resources/dead/Dead (8).png",
-            "resources/dead/Dead (9).png",
-            "resources/dead/Dead (10).png"
-    };
-
-    public Player(){
+    Player(){
         keyboard = new Keyboard(this);
-        player = new Picture(0,0, "resources/idle1.png");
+        player = new Picture(0,0, PlayerUtils.PLAYER_IDLE[0]);
         player.draw();
-        init();
     }
 
-    public boolean isPlayerIdle() {
+    public boolean isJump() {
+        return jump;
+    }
+
+    boolean isPlayerIdle() {
         return playerIdle;
     }
 
-    public boolean isDead() {
+    boolean isDead() {
         return dead;
     }
 
+    void jumpAnimation(){
+
+
+        for (int i=0; i < PlayerUtils.PLAYER_JUMP.length;i++){
+
+            try { Thread.sleep(15); }catch (InterruptedException ex){ }
+
+            if (i >= PlayerUtils.PLAYER_JUMP.length/2){
+                jumpRightDown();
+                player.load(PlayerUtils.PLAYER_JUMP[i]);
+                continue;
+            }
+
+            jumpRightUp();
+            player.load(PlayerUtils.PLAYER_JUMP[i]);
+        }
+
+        jump = false;
+        playerIdle = true;
+    }
+
     void runningAnimation(){
-        if (currentIndex == PLAYER_RUN.length){currentIndex = 0;}
-        player.load(PLAYER_RUN[currentIndex]);
+
+        if (currentIndex == PlayerUtils.PLAYER_RUN.length){currentIndex = 0;}
+        player.load(PlayerUtils.PLAYER_RUN[currentIndex]);
         moveRight();
         currentIndex++;
     }
     void idleAnimation(){
-        if (idleIndex == PLAYER_IDLE.length){idleIndex = 0;}
-        player.load(PLAYER_IDLE[idleIndex]);
+
+        if (idleIndex == PlayerUtils.PLAYER_IDLE.length){idleIndex = 0;}
+        player.load(PlayerUtils.PLAYER_IDLE[idleIndex]);
         idleIndex++;
     }
 
     void dyingAnimation(){
+
         if (dead){
-            for (String s : PLAYER_DEAD){
-                try { Thread.sleep(20); }catch (InterruptedException ex){}
+            for (String s : PlayerUtils.PLAYER_DEAD){
+                try { Thread.sleep(25); }catch (InterruptedException ex){}
                 player.load(s);
             }
             dead = false;
@@ -95,6 +89,7 @@ public class Player implements KeyboardHandler {
     }
 
     void init(){
+
         KeyboardEvent right = new KeyboardEvent();
         right.setKey(KeyboardEvent.KEY_RIGHT);
         right.setKeyboardEventType(KeyboardEventType.KEY_PRESSED);
@@ -112,11 +107,23 @@ public class Player implements KeyboardHandler {
         keyboard.addEventListener(space);
     }
 
-    void moveRight(){
+    private void moveRight(){
         player.translate(HORIZONTAL_SPEED,0);
     }
 
-    public boolean isRight() {
+    private void moveLeft(){
+        player.translate(-HORIZONTAL_SPEED,0);
+    }
+
+    private void jumpRightUp(){
+        player.translate(HORIZONTAL_SPEED, -VERTICAL_SPEED);
+    }
+
+    private void jumpRightDown(){
+        player.translate(HORIZONTAL_SPEED, VERTICAL_SPEED);
+    }
+
+    boolean isRight() {
         return right;
     }
 
@@ -130,7 +137,8 @@ public class Player implements KeyboardHandler {
                 right = true;
                 break;
             case KeyboardEvent.KEY_SPACE:
-                dead = true;
+                //dead = true;
+                jump = true;
                 playerIdle = false;
                 break;
         }
